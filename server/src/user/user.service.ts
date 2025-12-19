@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, In } from 'typeorm'; // Added Not and In for filtering
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,16 +27,28 @@ export class UserService {
     return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findOneById(id: number): Promise<User | undefined> {
-    return this.usersRepository.findOne({ where: { id } });
+  // Renamed to findById to match what we put in the Controller
+  async findById(id: number): Promise<Partial<User> | undefined> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) return undefined;
+    const { passwordHash, ...safeUser } = user;
+    return safeUser;
   }
 
-  // Used for fetching user profile (excluding password hash)
+  // Logic for the "Who to Follow" list
+  async findExploreUsers(): Promise<Partial<User>[]> {
+    // For now, this just returns all users except the password.
+    // In a real app, you would filter out users the current user already follows.
+    const users = await this.usersRepository.find({
+      take: 5,
+      select: ['id', 'username', 'bio'], // Only send what the UI needs
+    });
+    return users;
+  }
+
   async getProfile(id: number): Promise<Partial<User> | undefined> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) return undefined;
-    
-    // Selectively omit the passwordHash
     const { passwordHash, ...safeUser } = user;
     return safeUser;
   }

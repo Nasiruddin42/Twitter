@@ -16,14 +16,30 @@ export class MurmurService {
   // Helper to map entity to safe DTO
   private mapToResponseDto(murmur: Murmur): MurmurResponseDto {
     const { user, ...murmurData } = murmur;
-    const { passwordHash, email, ...safeUser } = user;
+    // Handle cases where user might not be loaded to prevent crashes
+    const safeUser = user ? {
+      id: user.id,
+      username: user.username,
+      bio: user.bio,
+    } : null;
     
     return {
       ...murmurData,
-      user: safeUser,
-      isLiked: false, // Default value, calculated in controllers/later phases
-      isFollowed: false, // Default value, calculated in controllers/later phases
+      user: safeUser as any,
+      isLiked: false, 
+      isFollowed: false, 
     };
+  }
+
+  // --- NEW: FETCH MURMURS FOR A SPECIFIC USER ---
+  async findByUser(userId: number): Promise<MurmurResponseDto[]> {
+    const murmurs = await this.murmursRepository.find({
+      where: { user: { id: userId } }, // Filters by the user relation ID
+      relations: ['user'],             // Ensures we get the username for the UI
+      order: { createdAt: 'DESC' },     // Shows newest posts at the top
+    });
+
+    return murmurs.map(m => this.mapToResponseDto(m));
   }
 
   // CREATE
@@ -33,8 +49,6 @@ export class MurmurService {
       user: user,
     });
     const savedMurmur = await this.murmursRepository.save(newMurmur);
-    
-    // Ensure we return the full user object for DTO mapping
     savedMurmur.user = user; 
     return this.mapToResponseDto(savedMurmur);
   }
@@ -43,7 +57,7 @@ export class MurmurService {
   async findOne(id: number): Promise<MurmurResponseDto> {
     const murmur = await this.murmursRepository.findOne({
       where: { id },
-      relations: ['user'], // Eager load the creator
+      relations: ['user'],
     });
 
     if (!murmur) {
@@ -53,7 +67,7 @@ export class MurmurService {
     return this.mapToResponseDto(murmur);
   }
 
-  // READ (All Murmurs - Simple Global Feed for now)
+  // READ (All Murmurs)
   async findAll(): Promise<MurmurResponseDto[]> {
     const murmurs = await this.murmursRepository.find({
       relations: ['user'],

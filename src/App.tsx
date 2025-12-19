@@ -4,26 +4,20 @@ import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
-
-// Simple placeholders
-//const HomePage: React.FC = () => <h1 className="text-2xl font-bold">Welcome to the Murmur Feed!</h1>; 
-const ProfilePage: React.FC = () => <h1 className="text-2xl font-bold">User Profile Page</h1>; 
-const NotFoundPage: React.FC = () => <h1 className="text-2xl font-bold">404 Not Found</h1>; 
+import ProfilePage from './pages/ProfilePage';
 
 const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        {/* Public Routes */}
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         
-        {/* Protected Routes */}
-        <Route path="profile" element={<ProfilePage />} />
+        {/* This MUST have the :userId suffix */}
+        <Route path="profile/:userId" element={<ProfilePage />} />
         
-        {/* Fallback */}
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<div className="p-10 text-center text-2xl font-bold">404 - Page Not Found</div>} />
       </Route>
     </Routes>
   );
