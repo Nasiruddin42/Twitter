@@ -1,29 +1,32 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
 
-function App() {
-  const [data, setData] = useState<any>(null)
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.post('/api/postTest')
-        console.log(res.data)
-        setData(res.data)
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      }
-    }
-    
-    fetchData()
-  }, [])
+// Simple placeholders
+//const HomePage: React.FC = () => <h1 className="text-2xl font-bold">Welcome to the Murmur Feed!</h1>; 
+const ProfilePage: React.FC = () => <h1 className="text-2xl font-bold">User Profile Page</h1>; 
+const NotFoundPage: React.FC = () => <h1 className="text-2xl font-bold">404 Not Found</h1>; 
 
+const App: React.FC = () => {
   return (
-    <div>
-      <h1>Display the data obtained from API here</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        {/* Public Routes */}
+        <Route index element={<HomePage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        
+        {/* Protected Routes */}
+        <Route path="profile" element={<ProfilePage />} />
+        
+        {/* Fallback */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  );
 }
 
-export default App
+export default App;
